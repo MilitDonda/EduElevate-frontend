@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduElevate</title>
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
 
 </head>
@@ -17,21 +18,46 @@
         <header>
             <div class="headerContainer">
                 <h1>{{ sitename }}</h1>
-                <button></button>
+                <button @click='showCheckout' v-if="isCartEmpty()">
+                    {{cart.length}}
+                    <span class="fa-solid fa-cart-shopping"></span>Shopping Cart</button>
+                    <button disabled='disabled' v-else>
+                        {{cart.length}}
+                        <span class="fa-solid fa-cart-shopping"></span>Shopping Cart</button>
 
             </div>
         </header>
-        <div v-for="product in products">
-            <img v-bind:src="product.image">
-            <h2 v-text="product.subject"></h2>
-            <p>Location: <span v-text="product.location"></span></p>
-            <p>Price: £<span v-text="product.price"></span></p>
-            <p>Seats Remaining: <span v-text="product.availability"></span></p>
-            <button @click='addItem(product)' v-if="checkAvailability(product)">Add to cart </button>
-            <button disabled='disabled' v-else>Add to cart</button>
-        </div>
 
+        <div v-if='showProduct' class="productContainer">
+
+            <div v-for="product in products">
+                <img v-bind:src="product.image">
+                <h2 v-text="product.subject"></h2>
+                <p>Location: <span v-text="product.location"></span></p>
+                <p>Price: £<span v-text="product.price"></span></p>
+                <p>Seats Remaining: <span v-text="product.availability"></span></p>
+                <button @click='addItem(product)' v-if="checkAvailability(product)"> Add to cart </button>
+                <button disabled='disabled' v-else>Add to cart</button>
+            </div>
+
+        </div>
+        <div v-else class="checkoutContainer">
+            
+            <div v-for="item in groupCart" :key="item.product.id">
+                    
+            <img v-bind:src="item.product.image">
+                <h2 v-text="item.product.subject"></h2>
+                <p>Location: <span v-text="item.product.location"></span></p>
+                <p>Price: £<span v-text="item.product.price"></span></p>
+                <p>Quantity: <span v-text="item.count"></span></p>
+                <button @click='removeItem(item.product)'> Remove </button>
+
+            </div>
+
+        </div>
+   
     </div>
+
     <script type="text/javascript">
         let webstore = new Vue({
             el: '#app',
@@ -78,7 +104,8 @@
                     image: "./images/chemistry.png"
                 },
                 ],
-                cart: []
+                cart: [],
+                showProduct: true
 
             },
             methods: {
@@ -88,10 +115,43 @@
                 },
                 checkAvailability(product) {
                     return product.availability > 0;
+                },
+                showCheckout() {
+                    this.showProduct = !this.showProduct;
+                },
+                removeItem(product){
+                    const index = this.cart.indexOf(product.id);
+                    if(index !== -1){
+                        this.cart.splice(index, 1);
+                        product.availability++;
+                    }
+                },
+                isCartEmpty(){
+                    if(this.cart.length === 0){
+                        this.showProduct = !this.showProduct;
+                    }
+                    return this.cart.length !== 0
                 }
-                
+            },
+            computed: {
+                groupCart() {
+                    const grouped= [];
+                    this.cart.forEach(id => {
+                        if (!grouped[id]) {
+                            const product = this.products.find(product => product.id === id);
+                            if(product) {
+                                grouped[id] = {
+                                    product: product,
+                                    count: 1
+                                }
+                            }   
+                        } else {
+                            grouped[id].count++;
+                        }
+                    });
+                    return Object.values(grouped);
+                }
             }
-
         });
     </script>
 </body>
