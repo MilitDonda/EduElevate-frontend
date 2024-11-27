@@ -41,17 +41,55 @@
             </div>
 
         </div>
-        <div v-else class="checkoutContainer">
-            
-            <div v-for="item in groupCart" :key="item.product.id">
-                    
+        <div v-else class="checkoutProductContainer">
+
+            <!-- Cart Items -->
+            <div v-for="item in groupCart" :key="item.product.id">      
             <img v-bind:src="item.product.image">
                 <h2 v-text="item.product.subject"></h2>
                 <p>Location: <span v-text="item.product.location"></span></p>
                 <p>Price: £<span v-text="item.product.price"></span></p>
                 <p>Quantity: <span v-text="item.count"></span></p>
                 <button @click='removeItem(item.product)'> Remove </button>
+            </div>
 
+            <!-- Checkout Section -->
+            <div class="checkoutContainer">
+                <h2>Checkout</h2>
+                <p>
+                    <strong>First name:</strong>
+                    <input v-model.trim="order.firstName" @input="validateName('firstName')">
+                </p>
+                <p>
+                    <strong>Last name:</strong>
+                    <input v-model.trim="order.lastName" @input="validateName('lastName')"> 
+                </p>
+                <p>
+                    <strong>Phone number:</strong> 
+                    <input type="number" v-model.number="order.number">
+                </p>
+                <p>
+                    <strong>Address:</strong> 
+                    <input v-model="order.address"/>
+                </p>
+                <p>
+                    <strong>City:</strong> 
+                    <input v-model.trim="order.city"/>
+                </p>
+                <p>
+                    <strong>Postcode:</strong> 
+                    <input v-model="order.postcode"/>
+                </p>
+                
+                <h2>Order Information</h2>
+                <p>Name: {{ fullName }}</p>
+                <p>Phone Number: {{order.number}}</p>
+                <p>Address: {{order.address}}</p>
+                <p>City: {{order.city}}</p>
+                <p>Postcode: {{order.postcode}}</p>
+
+                <button @click='submitForm()' v-if="valid()">Place Order</button>
+                <button disabled='disabled' v-else>Place Order</button>   
             </div>
 
         </div>
@@ -105,8 +143,15 @@
                 },
                 ],
                 cart: [],
-                showProduct: true
-
+                showProduct: true,
+                order: {
+                    firstName:'',
+                    lastName:'',
+                    number:'',
+                    address:'',
+                    city:'',
+                    postcode:''
+                }
             },
             methods: {
                 addItem(product) {
@@ -131,7 +176,25 @@
                         this.showProduct = !this.showProduct;
                     }
                     return this.cart.length !== 0
+                },
+                submitForm() {
+                    alert('Order Placed Successfully!');
+                },
+                validateName(name) {
+                    const regex = /^[a-zA-Z\s]*$/; // Only allows letters and spaces
+                    if (!regex.test(this.order[name])) {
+                        // Remove any non-letter characters from the input
+                        this.order[name] = this.order[name].replace(/[^a-zA-Z\s]/g, '');
+                        alert('Please enter a valid name using letters only');
+                    }
+                },
+                valid() {
+                    const nameRegex = /^[a-zA-Z\s]+$/;
+                    const isValidName = nameRegex.test(this.fullName) && this.fullName.trim().length > 0;
+                    const isValidNumber = /^\d{10,}$/.test(this.order.number); 
+                    return isValidName && isValidNumber;
                 }
+
             },
             computed: {
                 groupCart() {
@@ -150,6 +213,9 @@
                         }
                     });
                     return Object.values(grouped);
+                },
+                fullName() {
+                    return (this.order.firstName + ' ' + this.order.lastName).trim();
                 }
             }
         });
