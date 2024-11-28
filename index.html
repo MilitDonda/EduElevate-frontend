@@ -18,19 +18,34 @@
         <header>
             <div class="headerContainer">
                 <h1>{{ sitename }}</h1>
-                <button @click='showCheckout' v-if="isCartEmpty()">
-                    {{cart.length}}
-                    <span class="fa-solid fa-cart-shopping"></span>Shopping Cart</button>
-                    <button disabled='disabled' v-else>
-                        {{cart.length}}
-                        <span class="fa-solid fa-cart-shopping"></span>Shopping Cart</button>
+                <button @click="showCheckout" :disabled="isCartEmpty()">
+                    {{ cart.length }}
+                    <span class="fa-solid fa-cart-shopping"></span> Shopping Cart
+                </button>
+                
 
             </div>
         </header>
 
         <div v-if='showProduct' class="productContainer">
 
-            <div v-for="product in products">
+            <div class="sortContainer">
+                <label>Sort By:</label>
+                <label>
+                    <input type="radio" value="subject" v-model="sortOption"> Subject
+                </label>
+                <label>
+                    <input type="radio" value="location" v-model="sortOption"> Location
+                </label>
+                <label>
+                    <input type="radio" value="price" v-model="sortOption"> Price
+                </label>
+                <label>
+                    <input type="radio" value="availability" v-model="sortOption"> Availability
+                </label>
+            </div>                                  
+
+            <div v-for="product in sortedProducts" :key="product.id">
                 <img v-bind:src="product.image">
                 <h2 v-text="product.subject"></h2>
                 <p>Location: <span v-text="product.location"></span></p>
@@ -113,7 +128,7 @@
                     id: 2,
                     subject: "Biology",
                     location: "London",
-                    price: 2000,
+                    price: 200,
                     availability: 5,
                     image: "./images/biology.png"
                 },
@@ -121,7 +136,7 @@
                     id: 3,
                     subject: "Maths",
                     location: "London",
-                    price: 2000,
+                    price: 200,
                     availability: 5,
                     image: "./images/math.png"
                 },
@@ -129,7 +144,7 @@
                     id: 4,
                     subject: "Physics",
                     location: "London",
-                    price: 2000,
+                    price: 300,
                     availability: 5,
                     image: "./images/physics.png"
                 },
@@ -137,7 +152,7 @@
                     id: 5,
                     subject: "Chemistry",
                     location: "London",
-                    price: 2000,
+                    price: 1000,
                     availability: 5,
                     image: "./images/chemistry.png"
                 },
@@ -151,7 +166,8 @@
                     address:'',
                     city:'',
                     postcode:''
-                }
+                },
+                sortOption: 'subject'
             },
             methods: {
                 addItem(product) {
@@ -170,12 +186,12 @@
                         this.cart.splice(index, 1);
                         product.availability++;
                     }
-                },
-                isCartEmpty(){
                     if(this.cart.length === 0){
-                        this.showProduct = !this.showProduct;
+                        this.showProduct = true;
                     }
-                    return this.cart.length !== 0
+                },
+                isCartEmpty() {
+                    return this.cart.length === 0;
                 },
                 submitForm() {
                     alert('Order Placed Successfully!');
@@ -216,6 +232,14 @@
                 },
                 fullName() {
                     return (this.order.firstName + ' ' + this.order.lastName).trim();
+                },
+                sortedProducts() {
+                    return [...this.products].sort((a, b) => {
+                        if (this.sortOption === 'subject') return a.subject.localeCompare(b.subject);
+                        if (this.sortOption === 'location') return a.location.localeCompare(b.location);
+                        if (this.sortOption === 'price') return a.price - b.price;
+                        if (this.sortOption === 'availability') return a.availability - b.availability;
+                    });
                 }
             }
         });
