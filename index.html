@@ -122,87 +122,7 @@
             el: '#app',
             data: {
                 sitename: 'EduElevate',
-                products: [{
-                    id: 1,
-                    subject: "Computer Science",
-                    location: "London",
-                    price: 2000,
-                    availability: 5,
-                    image: "./images/compsci.png"
-                },
-                {
-                    id: 2,
-                    subject: "Biology",
-                    location: "London",
-                    price: 200,
-                    availability: 5,
-                    image: "./images/biology.png"
-                },
-                {
-                    id: 3,
-                    subject: "Maths",
-                    location: "London",
-                    price: 200,
-                    availability: 5,
-                    image: "./images/math.png"
-                },
-                {
-                    id: 4,
-                    subject: "Physics",
-                    location: "London",
-                    price: 300,
-                    availability: 5,
-                    image: "./images/physics.png"
-                },
-                {
-                    id: 5,
-                    subject: "Chemistry",
-                    location: "London",
-                    price: 1000,
-                    availability: 5,
-                    image: "./images/chemistry.png"
-                },
-                {
-                    id: 6,
-                    subject: "Computer Science",
-                    location: "Mauritius",
-                    price: 2000,
-                    availability: 50,
-                    image: "./images/compsci.png"
-                },
-                {
-                    id: 7,
-                    subject: "Biology",
-                    location: "Dubai",
-                    price: 200,
-                    availability: 10,
-                    image: "./images/biology.png"
-                },
-                {
-                    id: 8,
-                    subject: "Maths",
-                    location: "Toronto",
-                    price: 14000,
-                    availability: 15,
-                    image: "./images/math.png"
-                },
-                {
-                    id: 9,
-                    subject: "Physics",
-                    location: "Mauritius",
-                    price: 300,
-                    availability: 15,
-                    image: "./images/physics.png"
-                },
-                {
-                    id: 10,
-                    subject: "Chemistry",
-                    location: "Toronto",
-                    price: 14000,
-                    availability: 20,
-                    image: "./images/chemistry.png"
-                }
-                ],
+                products: [],
                 cart: [],
                 showProduct: true,
                 order: {
@@ -215,6 +135,16 @@
                 },
                 sortOption: 'subject',
                 sortOrder: 'asc'
+            },
+            created: function() {
+                fetch("http://localhost:3000/collections/products")
+                .then(response => response.json())
+                .then(data => {
+                    this.products = data;
+                })
+                .catch(error => {
+                    console.error("Error fetching lessons:", error);
+                });
             },
             methods: {
                 addItem(product) {
