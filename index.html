@@ -43,6 +43,12 @@
                 <label>
                     <input type="radio" value="availability" v-model="sortOption"> Availability
                 </label>
+                <label>
+                    <select v-model="sortOrder">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </label>
             </div>                                  
 
             <div v-for="product in sortedProducts" :key="product.id">
@@ -60,7 +66,7 @@
 
             <!-- Cart Items -->
             <div v-for="item in groupCart" :key="item.product.id">      
-            <img v-bind:src="item.product.image">
+                <img v-bind:src="item.product.image">
                 <h2 v-text="item.product.subject"></h2>
                 <p>Location: <span v-text="item.product.location"></span></p>
                 <p>Price: £<span v-text="item.product.price"></span></p>
@@ -147,15 +153,7 @@
                     price: 300,
                     availability: 5,
                     image: "./images/physics.png"
-                },
-                {
-                    id: 5,
-                    subject: "Chemistry",
-                    location: "London",
-                    price: 1000,
-                    availability: 5,
-                    image: "./images/chemistry.png"
-                },
+                }
                 ],
                 cart: [],
                 showProduct: true,
@@ -167,7 +165,8 @@
                     city:'',
                     postcode:''
                 },
-                sortOption: 'subject'
+                sortOption: 'subject',
+                sortOrder: 'asc'
             },
             methods: {
                 addItem(product) {
@@ -201,7 +200,7 @@
                     if (!regex.test(this.order[name])) {
                         // Remove any non-letter characters from the input
                         this.order[name] = this.order[name].replace(/[^a-zA-Z\s]/g, '');
-                        alert('Please enter a valid name using letters only');
+                        alert('Please enter a valid name using letters only!');
                     }
                 },
                 valid() {
@@ -235,10 +234,18 @@
                 },
                 sortedProducts() {
                     return [...this.products].sort((a, b) => {
-                        if (this.sortOption === 'subject') return a.subject.localeCompare(b.subject);
-                        if (this.sortOption === 'location') return a.location.localeCompare(b.location);
-                        if (this.sortOption === 'price') return a.price - b.price;
-                        if (this.sortOption === 'availability') return a.availability - b.availability;
+                        let result = 0;
+                        
+                        if (this.sortOption === 'subject')
+                        result = a.subject.localeCompare(b.subject);
+                        if (this.sortOption === 'location')
+                        result = a.location.localeCompare(b.location);
+                        if (this.sortOption === 'price')
+                        result = a.price - b.price;
+                        if (this.sortOption === 'availability')
+                        result = a.availability - b.availability;
+
+                        return this.sortOrder === 'asc' ? result : -result;
                     });
                 }
             }
