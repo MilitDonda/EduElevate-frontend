@@ -18,6 +18,9 @@
         <header>
             <div class="headerContainer">
                 <h1>{{ sitename }}</h1>
+                <div>
+                    <input type="text" placeholder="search" @input="searchProducts()">
+                </div>
                 <button @click="showCheckout" :disabled="isCartEmpty()">
                     {{ cart.length }}
                     <span class="fa-solid fa-cart-shopping"></span> Shopping Cart
@@ -30,48 +33,58 @@
         <div v-if='showProduct' class="productContainer">
 
             <div class="sortContainer">
-                <label>Sort By:</label>
-                <label>
+                <span>Sort By:</span>
+                <div>
                     <input type="radio" value="subject" v-model="sortOption"> Subject
-                </label>
-                <label>
+                </div>
+                <div>
                     <input type="radio" value="location" v-model="sortOption"> Location
-                </label>
-                <label>
+                </div>
+                <div>
                     <input type="radio" value="price" v-model="sortOption"> Price
-                </label>
-                <label>
+                </div>
+                <div>
                     <input type="radio" value="availability" v-model="sortOption"> Availability
-                </label>
-                <label>
+                </div>
+                <div>
                     <select v-model="sortOrder">
                         <option value="asc">Ascending</option>
                         <option value="desc">Descending</option>
                     </select>
-                </label>
+                </div>
             </div>                                  
 
-            <div v-for="product in sortedProducts" :key="product.id">
-                <img v-bind:src="product.image">
-                <h2 v-text="product.subject"></h2>
-                <p>Location: <span v-text="product.location"></span></p>
-                <p>Price: £<span v-text="product.price"></span></p>
-                <p>Seats Remaining: <span v-text="product.availability"></span></p>
-                <button @click='addItem(product)' v-if="checkAvailability(product)"> Add to cart </button>
-                <button disabled='disabled' v-else>Add to cart</button>
+            <div class="row" style="display: ruby;text-align: center;">
+                <div class="col-4 card" style="width: 200px;" v-for="product in sortedProducts" :key="product.id">
+
+                    <img v-bind:src="product.image">
+                    <h2 v-text="product.subject"></h2>
+                    <p>Location: <span v-text="product.location"></span></p>
+                    <p>Price: £<span v-text="product.price"></span></p>
+                    <p>Seats Remaining: <span v-text="product.availability"></span></p>
+                    <button @click='addItem(product)' v-if="checkAvailability(product)"> Add to cart </button>
+                    <button disabled='disabled' v-else>Add to cart</button>
+                  
+                </div>
+
+                <div v-if="sortedProducts.length == 0">
+                    <span>No item found.</span>
+                </div>
             </div>
 
         </div>
         <div v-else class="checkoutProductContainer">
 
             <!-- Cart Items -->
-            <div v-for="item in groupCart" :key="item.product.id">      
-                <img v-bind:src="item.product.image">
-                <h2 v-text="item.product.subject"></h2>
-                <p>Location: <span v-text="item.product.location"></span></p>
-                <p>Price: £<span v-text="item.product.price"></span></p>
-                <p>Quantity: <span v-text="item.count"></span></p>
-                <button @click='removeItem(item.product)'> Remove </button>
+            <div class="row" style="display: ruby;text-align: center;">
+                <div class="col-4 card" style="width: 200px;" v-for="item in groupCart" :key="item.product.id">      
+                    <img v-bind:src="item.product.image">
+                    <h2 v-text="item.product.subject"></h2>
+                    <p>Location: <span v-text="item.product.location"></span></p>
+                    <p>Price: £<span v-text="item.product.price"></span></p>
+                    <p>Quantity: <span v-text="item.count"></span></p>
+                    <button @click='removeItem(item.product)'> Remove </button>
+                </div>
             </div>
 
             <!-- Checkout Section -->
@@ -87,7 +100,7 @@
                 </p>
                 <p>
                     <strong>Phone number:</strong> 
-                    <input type="number" v-model.number="order.number">
+                    <input v-model.trimr="order.number">
                 </p>
                 <p>
                     <strong>Address:</strong> 
@@ -131,13 +144,15 @@
                     number:'',
                     address:'',
                     city:'',
-                    postcode:''
+                    postcode:'',
+                    productsBought:[],
                 },
                 sortOption: 'subject',
-                sortOrder: 'asc'
+                sortOrder: 'asc',
+                searchQuery: ''
             },
             created: function() {
-                fetch("http://localhost:3000/collections/products")
+                fetch("http://localhost:3000/collections/products/list")
                 .then(response => response.json())
                 .then(data => {
                     this.products = data;
@@ -171,7 +186,38 @@
                     return this.cart.length === 0;
                 },
                 submitForm() {
-                    alert('Order Placed Successfully!');
+                    console.log(this.cart)
+                    this.order.productsBought = this.cart;
+                    fetch("http://localhost:3000/collections/orders/confirm", 
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(this.order)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert( 'Order Placed Successfully!' )
+
+                        fetch("http://localhost:3000/collections/products/update", 
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({cart: this.cart})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data)
+                            this.cart = []
+                            
+                        })
+
+                    })
+                    this.showProduct = true;
+                        
                 },
                 validateName(name) {
                     const regex = /^[a-zA-Z\s]*$/; // Only allows letters and spaces
@@ -184,8 +230,24 @@
                 valid() {
                     const nameRegex = /^[a-zA-Z\s]+$/;
                     const isValidName = nameRegex.test(this.fullName) && this.fullName.trim().length > 0;
-                    const isValidNumber = /^\d{10,}$/.test(this.order.number); 
+                    const isValidNumber = /^\d{11}$/.test(this.order.number); 
                     return isValidName && isValidNumber;
+                },
+
+                searchProducts($event) {
+                    let searchString = event.target.value;
+                    fetch("http://localhost:3000/collections/products/search", 
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({searchString})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.products = data;
+                    })
                 }
 
             },
@@ -211,7 +273,9 @@
                     return (this.order.firstName + ' ' + this.order.lastName).trim();
                 },
                 sortedProducts() {
-                    return [...this.products].sort((a, b) => {
+                    console.log(this.products)
+                    return this.products
+                    .sort((a, b) => {
                         let result = 0;
                         
                         if (this.sortOption === 'subject')
@@ -226,7 +290,7 @@
                         return this.sortOrder === 'asc' ? result : -result;
                     });
                 }
-            }
+            },
         });
     </script>
 </body>
