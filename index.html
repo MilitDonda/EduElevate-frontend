@@ -152,7 +152,7 @@
                 searchQuery: ''
             },
             created: function() {
-                fetch("http://localhost:3000/collections/products/list")
+                fetch("https://eduelevate-b8l0.onrender.com/collections/products/list")
                 .then(response => response.json())
                 .then(data => {
                     this.products = data;
@@ -188,7 +188,7 @@
                 submitForm() {
                     console.log(this.cart)
                     this.order.productsBought = this.cart;
-                    fetch("http://localhost:3000/collections/orders/confirm", 
+                    fetch("https://eduelevate-b8l0.onrender.com/collections/orders/confirm", 
                     {
                         method: "POST",
                         headers: {
@@ -200,7 +200,7 @@
                     .then(data => {
                         alert( 'Order Placed Successfully!' )
 
-                        fetch("http://localhost:3000/collections/products/update", 
+                        fetch("https://eduelevate-b8l0.onrender.com/collections/products/update", 
                         {
                             method: "PUT",
                             headers: {
@@ -237,7 +237,7 @@
                 searchProducts($event) {
                     let searchString = event.target.value;
 
-                    fetch(`http://localhost:3000/collections/products/search?query=${searchString}`)
+                    fetch(`https://eduelevate-b8l0.onrender.com/collections/products/search?query=${searchString}`)
                         .then(response => response.json())
                         .then(data => {
                             this.products = data;
