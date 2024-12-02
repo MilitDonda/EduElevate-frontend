@@ -12,9 +12,10 @@
 </head>
 
 <body>
-
+    <!-- Root Vue instance -->
     <div id="app">
 
+        <!-- Header section -->
         <header>
             <div class="headerContainer">
                 <h1>{{ sitename }}</h1>
@@ -30,8 +31,10 @@
             </div>
         </header>
 
+        <!-- Product continer section -->
         <div v-if='showProduct' class="productContainer">
 
+            <!-- Sorting options -->
             <div class="sortContainer">
                 <span>Sort By:</span>
                 <div>
@@ -54,25 +57,32 @@
                 </div>
             </div>                                  
 
+            <!-- Product cards -->            
             <div class="row" style="display: ruby;text-align: center;">
                 <div class="col-4 card" style="width: 200px;" v-for="product in sortedProducts" :key="product.id">
+                <!-- Display products using v-for loop -->
 
                     <img v-bind:src="product.image">
                     <h2 v-text="product.subject"></h2>
                     <p>Location: <span v-text="product.location"></span></p>
                     <p>Price: £<span v-text="product.price"></span></p>
                     <p>Seats Remaining: <span v-text="product.availability"></span></p>
+
+                    <!-- Add to cart btn -->
                     <button @click='addItem(product)' v-if="checkAvailability(product)"> Add to cart </button>
                     <button disabled='disabled' v-else>Add to cart</button>
                   
                 </div>
 
+                <!-- Display message if there are no products found (when searching) -->
                 <div v-if="sortedProducts.length == 0">
                     <span>No item found.</span>
                 </div>
             </div>
 
         </div>
+
+        <!-- Checkout container -->
         <div v-else class="checkoutProductContainer">
 
             <!-- Cart Items -->
@@ -87,7 +97,7 @@
                 </div>
             </div>
 
-            <!-- Checkout Section -->
+            <!-- Checkout form -->
             <div class="checkoutContainer">
                 <h2>Checkout</h2>
                 <p>
@@ -115,6 +125,7 @@
                     <input v-model="order.postcode"/>
                 </p>
                 
+                <!-- Order summary -->
                 <h2>Order Information</h2>
                 <p>Name: {{ fullName }}</p>
                 <p>Phone Number: {{order.number}}</p>
@@ -122,6 +133,7 @@
                 <p>City: {{order.city}}</p>
                 <p>Postcode: {{order.postcode}}</p>
 
+                <!-- Place order btn -->
                 <button @click='submitForm()' v-if="valid()">Place Order</button>
                 <button disabled='disabled' v-else>Place Order</button>   
             </div>
@@ -130,14 +142,15 @@
    
     </div>
 
+    <!--  Vue.js script  -->
     <script type="text/javascript">
         let webstore = new Vue({
             el: '#app',
             data: {
                 sitename: 'EduElevate',
-                products: [],
-                cart: [],
-                showProduct: true,
+                products: [], //List of products
+                cart: [], //Items in cart
+                showProduct: true, //Toggle between product list and checkout
                 order: {
                     firstName:'',
                     lastName:'',
@@ -147,11 +160,12 @@
                     postcode:'',
                     productsBought:[],
                 },
-                sortOption: 'subject',
-                sortOrder: 'asc',
-                searchQuery: ''
+                sortOption: 'subject', //Sorting criteria
+                sortOrder: 'asc', //Sorting order
+                searchQuery: '' //Search input
             },
             created: function() {
+                //Fetch the product data
                 fetch("https://eduelevate-b8l0.onrender.com/collections/products/list")
                 .then(response => response.json())
                 .then(data => {
@@ -163,16 +177,20 @@
             },
             methods: {
                 addItem(product) {
+                    //Add product to the cart and decrease availlability
                     product.availability--;
                     this.cart.push(product.id);
                 },
                 checkAvailability(product) {
+                    //Check if the lesson has available seats
                     return product.availability > 0;
                 },
                 showCheckout() {
+                    //Toggle between checkout and product view
                     this.showProduct = !this.showProduct;
                 },
                 removeItem(product){
+                    //Remove a product from the cart and restore its availability
                     const index = this.cart.indexOf(product.id);
                     if(index !== -1){
                         this.cart.splice(index, 1);
@@ -183,9 +201,11 @@
                     }
                 },
                 isCartEmpty() {
+                    //Check if the cart is empty
                     return this.cart.length === 0;
                 },
                 submitForm() {
+                    //Submit the order and reset the cart data
                     console.log(this.cart)
                     this.order.productsBought = this.cart;
                     fetch("https://eduelevate-b8l0.onrender.com/collections/orders/confirm", 
@@ -220,6 +240,7 @@
                         
                 },
                 validateName(name) {
+                    //Validate name inputs
                     const regex = /^[a-zA-Z\s]*$/; // Only allows letters and spaces
                     if (!regex.test(this.order[name])) {
                         // Remove any non-letter characters from the input
@@ -228,6 +249,7 @@
                     }
                 },
                 valid() {
+                    //Validate the order form
                     const nameRegex = /^[a-zA-Z\s]+$/;
                     const isValidName = nameRegex.test(this.fullName) && this.fullName.trim().length > 0;
                     const isValidNumber = /^\d{11}$/.test(this.order.number); 
@@ -235,6 +257,7 @@
                 },
 
                 searchProducts($event) {
+                    //Search for products
                     let searchString = event.target.value;
 
                     fetch(`https://eduelevate-b8l0.onrender.com/collections/products/search?query=${searchString}`)
@@ -249,6 +272,7 @@
             },
             computed: {
                 groupCart() {
+                    //Group item in cart by products
                     const grouped= [];
                     this.cart.forEach(id => {
                         if (!grouped[id]) {
@@ -266,9 +290,11 @@
                     return Object.values(grouped);
                 },
                 fullName() {
+                    //Combine first name and last name
                     return (this.order.firstName + ' ' + this.order.lastName).trim();
                 },
                 sortedProducts() {
+                    //Sort the products based on user selection
                     console.log(this.products)
                     return this.products
                     .sort((a, b) => {
